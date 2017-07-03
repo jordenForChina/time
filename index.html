@@ -11,14 +11,148 @@
 
 <body>
     <div class="wrap">
+        <p id="input">
+            <input type="text" class="inputMin">
+            <button class="commit">确定</button>
+        </p>
 
+        <p id="output">
+            <span id="min"></span>
+            <span id="sec"></span>
+        </p>
+
+        <p id="delay">
+            <span>你需要延时吗！</span>
+            <button class="need">要</button>
+            <button class="noNeed">不要</button>
+        </p>
     </div>
 </body>
 <script src="./lib/jquery.min.js"></script>
 <script>
-    $(function() {
-        alert('123');
+    $(function () {
+        function Clock(min) {
+            this.min = min;
+            this.sec = 0;
+            this.finsh = false;
+            this.time = null;
+        };
+        Clock.prototype.reset = function () {
+            this.sec = 0;
+            this.finsh = false;
+            this.time = null;
+        }
+
+        Clock.prototype.runSec = function () {
+            this.sec--;
+            if (this.sec < 0) {
+                this.sec = 60;
+                this.min--;
+            }
+            if (this.sec < 10) {
+                this.sec = "0" + this.sec;
+            }
+
+            if (this.min == 0 && this.sec == "00") {
+                this.finsh = true;
+                clearInterval(this.time);
+
+            }
+            console.log(this.finsh, this.min, this.sec);
+            $('#min').html(this.min);
+            $('#sec').html(this.sec);
+            if (this.finsh == true) {
+                $('#output').hide();
+                $('#input').hide();
+                $('#delay').show();
+                $('.inputMin').val('');
+                this.reset();
+            }
+
+
+        };
+        Clock.prototype.keep = function () {
+            var that = this;
+            this.time = setInterval(function () {
+                that.runSec();
+
+            }, 1000);
+
+        }
+        Clock.prototype.init = function () {
+            this.keep();
+        }
+        var runClock = {
+            input: null,
+            output: null,
+            submit: null,
+            inputMin: null,
+            need: null,
+            noNeed: null,
+            delay: null,
+            clock1: null,
+            delay2: null,
+            inputStatus: function () {
+                this.bindDom();
+                this.input.show();
+                this.output.hide();
+                this.delay.hide();
+
+            },
+            showStatus: function () {
+                this.bindDom();
+                this.input.hide();
+                this.delay.hide();
+                this.output.show();
+            },
+            bindDom: function () {
+                this.input = $('#input');
+                this.output = $('#output');
+                this.submit = $('.commit');
+                this.inputMin = $('.inputMin');
+                this.noNeed = $('.noNeed');
+                this.delay = $('#delay');
+                this.need = $('.need');
+            },
+            getInput: function () {
+                var value = this.inputMin.val();
+                value = Number(value);
+                return value;
+            },
+
+            bindEvent: function () {
+                var that = this;
+                this.submit.click(function () {
+                    that.showStatus();
+                    that.clock = new Clock(that.getInput());
+                    that.clock.init()
+
+                });
+                this.noNeed.click(function () {
+                    that.inputStatus();
+                });
+                this.need.click(function () {
+                    that.inputStatus();
+                    console.log(that.clock);
+                    delete that.clock;
+                    that.delay2 = new Clock(that.getInput());
+                    that.delay2.init();
+
+                })
+            },
+            init: function () {
+                this.bindDom();
+
+                this.inputStatus();
+                this.delay.hide();
+                this.bindEvent();
+            }
+        }
+        runClock.init();
+
+
     })
+
 </script>
 
 </html>
