@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-
+    <style>
+        #output {
+            font-size: 64px;
+        }
+    </style>
 </head>
 
 <body>
@@ -30,20 +34,24 @@
 </body>
 <script src="./lib/jquery.min.js"></script>
 <script>
-    $(function () {
+    $(function() {
         function Clock(min) {
             this.min = min;
             this.sec = 0;
             this.finsh = false;
             this.time = null;
+            this.time2 = null;
+            this.i = 0;
         };
-        Clock.prototype.reset = function () {
+        Clock.prototype.reset = function() {
             this.sec = 0;
             this.finsh = false;
             this.time = null;
         }
 
-        Clock.prototype.runSec = function () {
+        Clock.prototype.runSec = function(mins, secs, times) {
+            console.log(mins, secs)
+
             this.sec--;
             if (this.sec < 0) {
                 this.sec = 60;
@@ -55,12 +63,12 @@
 
             if (this.min == 0 && this.sec == "00") {
                 this.finsh = true;
-                clearInterval(this.time);
+                clearInterval(times);
 
             }
             console.log(this.finsh, this.min, this.sec);
-            $('#min').html(this.min);
-            $('#sec').html(this.sec);
+            $(mins).html(this.min);
+            $(secs).html(this.sec);
             if (this.finsh == true) {
                 $('#output').hide();
                 $('#input').hide();
@@ -68,19 +76,35 @@
                 $('.inputMin').val('');
                 this.reset();
             }
-
-
         };
-        Clock.prototype.keep = function () {
+        Clock.prototype.keep = function(min, sec, time) {
             var that = this;
-            this.time = setInterval(function () {
-                that.runSec();
-
+            this.sec = 0;
+            time = setInterval(function() {
+                that.runSec(min, sec, time);
             }, 1000);
 
+
         }
-        Clock.prototype.init = function () {
-            this.keep();
+        Clock.prototype.init = function() {
+            this.keep('#min', '#sec', this.time);
+        }
+        Clock.prototype.stop = function(min, sec) {
+            clearInterval(this.time);
+            $(min).remove();
+            $(sec).remove();
+        }
+        Clock.prototype.reRun = function() {
+            this.i++;
+            this.stop('#min', '#sec');
+            this.reset();
+            var mins = "min_" + this.i;
+            var secs = "sec_" + this.i;
+            var minss = "#" + mins;
+            var secss = "#" + secs;
+            var html = '<span id=' + mins + '></span><span id=' + secs + '></span>';
+            $(html).appendTo("#output");
+            this.keep(minss, secss, this.time2);
         }
         var runClock = {
             input: null,
@@ -92,20 +116,22 @@
             delay: null,
             clock1: null,
             delay2: null,
-            inputStatus: function () {
+            min: null,
+            sec: null,
+            inputStatus: function() {
                 this.bindDom();
                 this.input.show();
                 this.output.hide();
                 this.delay.hide();
 
             },
-            showStatus: function () {
+            showStatus: function() {
                 this.bindDom();
                 this.input.hide();
                 this.delay.hide();
                 this.output.show();
             },
-            bindDom: function () {
+            bindDom: function() {
                 this.input = $('#input');
                 this.output = $('#output');
                 this.submit = $('.commit');
@@ -113,34 +139,37 @@
                 this.noNeed = $('.noNeed');
                 this.delay = $('#delay');
                 this.need = $('.need');
+                this.min = $('#min');
+                this.sec = $('#sec');
             },
-            getInput: function () {
+            getInput: function() {
                 var value = this.inputMin.val();
                 value = Number(value);
                 return value;
             },
 
-            bindEvent: function () {
+            bindEvent: function() {
                 var that = this;
-                this.submit.click(function () {
+                this.submit.click(function() {
                     that.showStatus();
                     that.clock = new Clock(that.getInput());
-                    that.clock.init()
+                    that.clock.init();
+                });
+                this.noNeed.click(function() {
+                    that.inputStatus();
 
                 });
-                this.noNeed.click(function () {
+                this.need.click(function() {
                     that.inputStatus();
-                });
-                this.need.click(function () {
-                    that.inputStatus();
-                    console.log(that.clock);
-                    delete that.clock;
+                    that.inputMin.val('');
+                    console.log(that.getInput());
                     that.delay2 = new Clock(that.getInput());
-                    that.delay2.init();
+
+                    that.delay2.reRun();
 
                 })
             },
-            init: function () {
+            init: function() {
                 this.bindDom();
 
                 this.inputStatus();
@@ -152,7 +181,6 @@
 
 
     })
-
 </script>
 
 </html>
